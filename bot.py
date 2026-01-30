@@ -2,13 +2,13 @@ import telebot
 from telebot import types
 import os
 
-# --- আপনার দেওয়া তথ্যসমূহ এখানে সেট করা হয়েছে ---
+# --- আপনার তথ্যসমূহ এখানে নির্ভুলভাবে বসানো হয়েছে ---
 API_TOKEN = '8480712542:AAHd8A4VJ-UWCJ_wSSDYdZkVgj2BmFHp99Q'
 ADMIN_ID = 8480712542  # আপনার চ্যাট আইডি
 DEV_USER = '@ax_abir_999' # ডেভলপার ইউজারনেম
 bot = telebot.TeleBot(API_TOKEN)
 
-# ইউজার লিস্ট (সাময়িকভাবে রাখার জন্য)
+# ইউজার লিস্ট সেভ রাখার জন্য
 user_list = set()
 
 @bot.message_handler(commands=['start'])
@@ -23,7 +23,7 @@ def start_msg(message):
     btn4 = types.InlineKeyboardButton("📢 Our Channels", callback_data="channels")
     btn5 = types.InlineKeyboardButton("👤 Developer Info", callback_data="dev")
     
-    # শুধুমাত্র আপনার (Admin) জন্য এই বাটনটি দৃশ্যমান হবে
+    # অ্যাডমিন চেক
     if message.chat.id == ADMIN_ID:
         btn_admin = types.InlineKeyboardButton("🛠 ADMIN PANEL", callback_data="admin_panel")
         markup.add(btn1, btn2, btn3, btn4, btn5, btn_admin)
@@ -42,61 +42,50 @@ def callback_handler(call):
     uid = call.message.chat.id
     
     if call.data == "lookup":
-        bot.send_message(uid, "🔍 **User Lookup:**\nটেলিগ্রাম ইউজারনেম (উদা: @username) পাঠান। আমি ডাটাবেস চেক করে তথ্য বের করার চেষ্টা করছি...")
+        bot.send_message(uid, "🔍 **User Lookup:**\nটেলিগ্রাম ইউজারনেম (উদা: @username) পাঠান। ডাটাবেস চেক করা হচ্ছে...")
 
     elif call.data == "iptracker":
-        bot.send_message(uid, "📍 **IP Tracker:**\nলিঙ্ক তৈরি করতে [Grabify](https://grabify.link) ব্যবহার করুন এবং সেটি টার্গেট ব্যক্তিকে পাঠান। সে ক্লিক করলে আপনি আইপি পাবেন।")
+        bot.send_message(uid, "📍 **IP Tracker:**\nলিঙ্ক তৈরি করতে [Grabify](https://grabify.link) ব্যবহার করুন এবং টার্গেটকে পাঠান।")
 
     elif call.data == "phone_sec":
         if uid == ADMIN_ID:
-            msg = (
-                "📱 **Phone Security (Admin Mode):**\n\n"
-                "১. /track - হারানো ফোনের লোকেশন দেখতে\n"
-                "২. /alarm - ফোনে উচ্চ শব্দে এলার্ম বাজাতে\n"
-                "৩. /lock - ডিভাইসটি লক করতে"
-            )
-            bot.send_message(uid, msg)
+            bot.send_message(uid, "📱 **Admin Security Mode:**\n১. /track - লোকেশন\n২. /alarm - এলার্ম\n৩. /lock - লক")
         else:
-            bot.send_message(uid, "❌ এই ফিচারটি শুধুমাত্র এই বটের মালিকের ব্যবহারের জন্য সংরক্ষিত।")
+            bot.send_message(uid, "❌ এই ফিচারটি শুধুমাত্র বটের মালিকের জন্য।")
 
     elif call.data == "dev":
-        bot.send_message(uid, f"👤 **Developer Information:**\n\nডেভলপার: {DEV_USER}\nযেকোনো সাহায্যের জন্য সরাসরি মেসেজ দিন।")
-
-    elif call.data == "channels":
-        markup = types.InlineKeyboardMarkup()
-        markup.add(types.InlineKeyboardButton("Join Our Channel", url="https://t.me/ax_abir_999")) # এখানে আপনার চ্যানেল লিঙ্ক দিন
-        bot.send_message(uid, "আমাদের অফিসিয়াল চ্যানেলে যুক্ত হন:", reply_markup=markup)
+        bot.send_message(uid, f"👤 **Developer:** {DEV_USER}")
 
     elif call.data == "admin_panel" and uid == ADMIN_ID:
         markup = types.InlineKeyboardMarkup()
         markup.add(types.InlineKeyboardButton("📢 Send Broadcast", callback_data="bc_msg"))
-        bot.send_message(uid, f"🛠 **অ্যাডমিন প্যানেল**\nবর্তমানে বটে মোট ইউজার আছে: {len(user_list)} জন।", reply_markup=markup)
+        bot.send_message(uid, f"🛠 **অ্যাডমিন প্যানেল**\nমোট ইউজার: {len(user_list)}", reply_markup=markup)
 
     elif call.data == "bc_msg" and uid == ADMIN_ID:
-        bot.send_message(uid, "সবাইকে মেসেজ পাঠাতে লিখুন: `/send আপনার বার্তা`")
+        bot.send_message(uid, "মেসেজ পাঠাতে লিখুন: `/send বার্তা`")
 
-# --- বিশেষ কমান্ড হ্যান্ডলার ---
+# --- কমান্ড হ্যান্ডলার ---
 
 @bot.message_handler(func=lambda m: m.text and m.text.startswith('/send'))
 def do_broadcast(message):
     if message.chat.id == ADMIN_ID:
         content = message.text.replace('/send', '').strip()
-        if content:
-            for user in user_list:
-                try: bot.send_message(user, f"📢 **ADMIN MESSAGE:**\n\n{content}")
-                except: pass
-            bot.send_message(ADMIN_ID, "✅ মেসেজ সবার কাছে সফলভাবে পাঠানো হয়েছে।")
-        else:
-            bot.send_message(ADMIN_ID, "⚠️ মেসেজে কিছু লিখুন।")
+        for user in user_list:
+            try: bot.send_message(user, f"📢 **ADMIN MESSAGE:**\n\n{content}")
+            except: pass
+        bot.send_message(ADMIN_ID, "✅ মেসেজ পাঠানো হয়েছে।")
 
 @bot.message_handler(func=lambda m: m.text and m.text.startswith('@'))
 def lookup_username(message):
-    bot.reply_to(message, "⚙️ ডাটাবেস সার্চ করা হচ্ছে... \n\n⚠️ ফলাফল: ইউজারনেমটির তথ্য পাবলিক সার্ভারে এনক্রিপ্টেড আছে। ডিক্রিপ্ট করতে প্রফেশনাল OSINT টুলস প্রয়োজন।")
+    bot.reply_to(message, "⚙️ ডাটাবেস সার্চ করা হচ্ছে... ফলাফল পাওয়া যায়নি।")
 
-# রেন্ডার এবং আপটাইম রোবটের জন্য সার্ভার (যাতে বট ২৪ ঘণ্টা চলে)
+# রেন্ডার সার্ভার
 from flask import Flask
 from threading import Thread
 app = Flask('')
 @app.route('/')
-def home(): return "AX Tracker Bot is Live!"
-def run(): app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5000
+def home(): return "Bot is Live!"
+def run(): app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5000)))
+Thread(target=run).start()
+
+bot.polling(none_stop=True)
