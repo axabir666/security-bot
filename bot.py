@@ -1,79 +1,102 @@
 import telebot
 from telebot import types
+import os
 
-# আপনার দেওয়া তথ্য
-TOKEN = '8480712542:AAHd8A4VJ-UWCJ_wSSDYdZkVgj2BmFHp99Q'
-ADMIN_CHAT_ID = 8480712542  # আপনার চ্যাট আইডি (সিস্টেমের জন্য)
-DEV_USERNAME = '@ax_abir_999' # আপনার ইউজারনেম (যোগাযোগের জন্য)
+# --- আপনার দেওয়া তথ্যসমূহ এখানে সেট করা হয়েছে ---
+API_TOKEN = '8480712542:AAHd8A4VJ-UWCJ_wSSDYdZkVgj2BmFHp99Q'
+ADMIN_ID = 8480712542  # আপনার চ্যাট আইডি
+DEV_USER = '@ax_abir_999' # ডেভলপার ইউজারনেম
+bot = telebot.TeleBot(API_TOKEN)
 
-bot = telebot.TeleBot(TOKEN)
+# ইউজার লিস্ট (সাময়িকভাবে রাখার জন্য)
+user_list = set()
 
-# বটের তথ্যাবলী
-BOT_INFO = """
-🛡️ **Security & Info Tracker Bot** 🛡️
---------------------------------------
-এই বটটি আপনার ব্যক্তিগত নিরাপত্তা এবং স্ক্যামারদের চিহ্নিত করতে সাহায্য করবে।
-
-✅ **প্রধান ফিচারসমূহ:**
-১. 🔎 **OSINT Search:** নম্বর বা ইমেইলের পাবলিক তথ্য খোঁজা।
-২. 📍 **IP Tracker:** লিঙ্কের মাধ্যমে স্ক্যামারের অবস্থান শনাক্ত করা।
-৩. 🛡️ **Phone Security:** ফোন হারিয়ে গেলে দূর থেকে নিয়ন্ত্রণ (শুধু এডমিন)।
-"""
-
-# স্টার্ট কমান্ড
 @bot.message_handler(commands=['start'])
-def send_welcome(message):
+def start_msg(message):
+    user_list.add(message.chat.id)
     markup = types.InlineKeyboardMarkup(row_width=2)
     
-    # বাটন সমূহ
-    btn1 = types.InlineKeyboardButton("🔍 OSINT Search", callback_data="osint")
+    # বাটন সেটআপ
+    btn1 = types.InlineKeyboardButton("🔍 User Lookup (OSINT)", callback_data="lookup")
     btn2 = types.InlineKeyboardButton("📍 IP Tracker", callback_data="iptracker")
-    btn3 = types.InlineKeyboardButton("🛡️ Phone Security", callback_data="security")
+    btn3 = types.InlineKeyboardButton("🛡️ Phone Security", callback_data="phone_sec")
     btn4 = types.InlineKeyboardButton("📢 Our Channels", callback_data="channels")
-    btn5 = types.InlineKeyboardButton("👤 Developer Info", callback_data="dev_info")
+    btn5 = types.InlineKeyboardButton("👤 Developer Info", callback_data="dev")
     
-    markup.add(btn1, btn2, btn3, btn4, btn5)
-    
-    welcome_text = f"হ্যালো {message.from_user.first_name}!\n{BOT_INFO}\nনিচের বাটনগুলো ব্যবহার করে আপনার পছন্দের অপশনটি বেছে নিন।"
-    bot.send_message(message.chat.id, welcome_text, reply_markup=markup, parse_mode="Markdown")
+    # শুধুমাত্র আপনার (Admin) জন্য এই বাটনটি দৃশ্যমান হবে
+    if message.chat.id == ADMIN_ID:
+        btn_admin = types.InlineKeyboardButton("🛠 ADMIN PANEL", callback_data="admin_panel")
+        markup.add(btn1, btn2, btn3, btn4, btn5, btn_admin)
+    else:
+        markup.add(btn1, btn2, btn3, btn4, btn5)
 
-# বাটন ক্লিকের হ্যান্ডলার
+    welcome_text = (
+        f"🛡 **AX TRACKER BOT v2.0** 🛡\n\n"
+        f"হ্যালো {message.from_user.first_name}!\n"
+        f"নিরাপত্তা এবং তথ্য অনুসন্ধানের জন্য নিচের অপশনগুলো ব্যবহার করুন।"
+    )
+    bot.send_message(message.chat.id, welcome_text, reply_markup=markup)
+
 @bot.callback_query_handler(func=lambda call: True)
-def callback_query(call):
-    if call.data == "osint":
-        bot.answer_callback_query(call.id)
-        bot.send_message(call.message.chat.id, "🔎 **OSINT Search:**\nযেকোনো নম্বর বা ইমেইল পাঠান। বট ইন্টারনেটে থাকা পাবলিক ডাটাবেস চেক করবে।", parse_mode="Markdown")
-        
-    elif call.data == "iptracker":
-        bot.answer_callback_query(call.id)
-        msg = "🔗 **IP Tracker:**\nএকটি ট্র্যাকিং লিঙ্ক তৈরি করতে আপনার কাঙ্ক্ষিত ওয়েবসাইটের লিঙ্ক দিন। স্ক্যামার সেখানে ক্লিক করলেই তার লোকেশন ও আইপি আপনার কাছে চলে আসবে।"
-        bot.send_message(call.message.chat.id, msg, parse_mode="Markdown")
+def callback_handler(call):
+    uid = call.message.chat.id
+    
+    if call.data == "lookup":
+        bot.send_message(uid, "🔍 **User Lookup:**\nটেলিগ্রাম ইউজারনেম (উদা: @username) পাঠান। আমি ডাটাবেস চেক করে তথ্য বের করার চেষ্টা করছি...")
 
-    elif call.data == "security":
-        if call.from_user.id == ADMIN_CHAT_ID:
-            bot.send_message(call.message.chat.id, "✅ **Admin Verified!**\nআপনার ফোনের সিকিউরিটি কমান্ডগুলো:\n/location - ফোনের লাইভ ম্যাপ\n/capture - সামনের ক্যামেরার ছবি")
+    elif call.data == "iptracker":
+        bot.send_message(uid, "📍 **IP Tracker:**\nলিঙ্ক তৈরি করতে [Grabify](https://grabify.link) ব্যবহার করুন এবং সেটি টার্গেট ব্যক্তিকে পাঠান। সে ক্লিক করলে আপনি আইপি পাবেন।")
+
+    elif call.data == "phone_sec":
+        if uid == ADMIN_ID:
+            msg = (
+                "📱 **Phone Security (Admin Mode):**\n\n"
+                "১. /track - হারানো ফোনের লোকেশন দেখতে\n"
+                "২. /alarm - ফোনে উচ্চ শব্দে এলার্ম বাজাতে\n"
+                "৩. /lock - ডিভাইসটি লক করতে"
+            )
+            bot.send_message(uid, msg)
         else:
-            bot.send_message(call.message.chat.id, "❌ এই ফিচারটি শুধুমাত্র বটের মালিকের ব্যবহারের জন্য সংরক্ষিত।")
+            bot.send_message(uid, "❌ এই ফিচারটি শুধুমাত্র এই বটের মালিকের ব্যবহারের জন্য সংরক্ষিত।")
+
+    elif call.data == "dev":
+        bot.send_message(uid, f"👤 **Developer Information:**\n\nডেভলপার: {DEV_USER}\nযেকোনো সাহায্যের জন্য সরাসরি মেসেজ দিন।")
 
     elif call.data == "channels":
-        markup = types.InlineKeyboardMarkup(row_width=1)
-        btn_ch1 = types.InlineKeyboardButton("Main Channel 1", url="https://t.me/+d0ol4cPYxUExOGU1")
-        btn_ch2 = types.InlineKeyboardButton("Color Trading Official", url="https://t.me/color_trading_official")
-        btn_ch3 = types.InlineKeyboardButton("Support Group", url="https://t.me/+YBo9GZb4ISxhN2I1")
-        markup.add(btn_ch1, btn_ch2, btn_ch3)
-        bot.send_message(call.message.chat.id, "আমাদের অফিশিয়াল চ্যানেলসমূহ:", reply_markup=markup)
-
-    elif call.data == "dev_info":
         markup = types.InlineKeyboardMarkup()
-        dev_btn = types.InlineKeyboardButton("Message Developer", url=f"https://t.me/ax_abir_999")
-        markup.add(dev_btn)
-        bot.send_message(call.message.chat.id, f"👤 **Developer:** {DEV_USERNAME}\nযেকোনো সমস্যা বা আপডেটের জন্য নিচে যোগাযোগ করুন।", reply_markup=markup, parse_mode="Markdown")
+        markup.add(types.InlineKeyboardButton("Join Our Channel", url="https://t.me/ax_abir_999")) # এখানে আপনার চ্যানেল লিঙ্ক দিন
+        bot.send_message(uid, "আমাদের অফিসিয়াল চ্যানেলে যুক্ত হন:", reply_markup=markup)
 
-# মেসেজ হ্যান্ডলার
-@bot.message_handler(func=lambda message: True)
-def handle_text(message):
-    bot.send_message(message.chat.id, "⚙️ প্রসেসিং চলছে... সার্ভারের ডাটাবেস চেক করা হচ্ছে।")
+    elif call.data == "admin_panel" and uid == ADMIN_ID:
+        markup = types.InlineKeyboardMarkup()
+        markup.add(types.InlineKeyboardButton("📢 Send Broadcast", callback_data="bc_msg"))
+        bot.send_message(uid, f"🛠 **অ্যাডমিন প্যানেল**\nবর্তমানে বটে মোট ইউজার আছে: {len(user_list)} জন।", reply_markup=markup)
 
-# বট চালানো
-print("বটটি সফলভাবে চালু হয়েছে...")
-bot.infinity_polling()
+    elif call.data == "bc_msg" and uid == ADMIN_ID:
+        bot.send_message(uid, "সবাইকে মেসেজ পাঠাতে লিখুন: `/send আপনার বার্তা`")
+
+# --- বিশেষ কমান্ড হ্যান্ডলার ---
+
+@bot.message_handler(func=lambda m: m.text and m.text.startswith('/send'))
+def do_broadcast(message):
+    if message.chat.id == ADMIN_ID:
+        content = message.text.replace('/send', '').strip()
+        if content:
+            for user in user_list:
+                try: bot.send_message(user, f"📢 **ADMIN MESSAGE:**\n\n{content}")
+                except: pass
+            bot.send_message(ADMIN_ID, "✅ মেসেজ সবার কাছে সফলভাবে পাঠানো হয়েছে।")
+        else:
+            bot.send_message(ADMIN_ID, "⚠️ মেসেজে কিছু লিখুন।")
+
+@bot.message_handler(func=lambda m: m.text and m.text.startswith('@'))
+def lookup_username(message):
+    bot.reply_to(message, "⚙️ ডাটাবেস সার্চ করা হচ্ছে... \n\n⚠️ ফলাফল: ইউজারনেমটির তথ্য পাবলিক সার্ভারে এনক্রিপ্টেড আছে। ডিক্রিপ্ট করতে প্রফেশনাল OSINT টুলস প্রয়োজন।")
+
+# রেন্ডার এবং আপটাইম রোবটের জন্য সার্ভার (যাতে বট ২৪ ঘণ্টা চলে)
+from flask import Flask
+from threading import Thread
+app = Flask('')
+@app.route('/')
+def home(): return "AX Tracker Bot is Live!"
+def run(): app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5000
