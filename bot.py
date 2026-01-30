@@ -2,7 +2,7 @@ import telebot
 from telebot import types
 import os
 
-# --- আপনার তথ্যসমূহ এখানে নির্ভুলভাবে বসানো হয়েছে ---
+# --- আপনার টোকেন এবং আইডি এখানে বসিয়ে দেওয়া হয়েছে ---
 API_TOKEN = '8480712542:AAHd8A4VJ-UWCJ_wSSDYdZkVgj2BmFHp99Q'
 ADMIN_ID = 8480712542  # আপনার চ্যাট আইডি
 DEV_USER = '@ax_abir_999' # ডেভলপার ইউজারনেম
@@ -23,7 +23,7 @@ def start_msg(message):
     btn4 = types.InlineKeyboardButton("📢 Our Channels", callback_data="channels")
     btn5 = types.InlineKeyboardButton("👤 Developer Info", callback_data="dev")
     
-    # অ্যাডমিন চেক
+    # অ্যাডমিন বাটন (শুধুমাত্র আপনার আইডি হলে দেখাবে)
     if message.chat.id == ADMIN_ID:
         btn_admin = types.InlineKeyboardButton("🛠 ADMIN PANEL", callback_data="admin_panel")
         markup.add(btn1, btn2, btn3, btn4, btn5, btn_admin)
@@ -45,7 +45,7 @@ def callback_handler(call):
         bot.send_message(uid, "🔍 **User Lookup:**\nটেলিগ্রাম ইউজারনেম (উদা: @username) পাঠান। ডাটাবেস চেক করা হচ্ছে...")
 
     elif call.data == "iptracker":
-        bot.send_message(uid, "📍 **IP Tracker:**\nলিঙ্ক তৈরি করতে [Grabify](https://grabify.link) ব্যবহার করুন এবং টার্গেটকে পাঠান।")
+        bot.send_message(uid, "📍 **IP Tracker:**\nলিঙ্ক তৈরি করতে [Grabify](https://grabify.link) ব্যবহার করুন।")
 
     elif call.data == "phone_sec":
         if uid == ADMIN_ID:
@@ -65,7 +65,6 @@ def callback_handler(call):
         bot.send_message(uid, "মেসেজ পাঠাতে লিখুন: `/send বার্তা`")
 
 # --- কমান্ড হ্যান্ডলার ---
-
 @bot.message_handler(func=lambda m: m.text and m.text.startswith('/send'))
 def do_broadcast(message):
     if message.chat.id == ADMIN_ID:
