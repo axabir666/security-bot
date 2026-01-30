@@ -4,7 +4,7 @@ import os
 
 # --- আপনার দেওয়া নতুন তথ্যসমূহ ---
 API_TOKEN = '7867771491:AAFrYzFOeDRnSiH2FaqND3Pr3TtQj9aDFOI'
-ADMIN_ID = 8293410345  # আপনার নতুন চ্যাট আইডি
+ADMIN_ID = '8293410345' # আপনার নতুন চ্যাট আইডি
 DEV_USER = '@ax_abir_999' # ডেভলপার ইউজারনেম
 CHANNEL_LINK = 'https://t.me/ax_abir_999' # আপনার চ্যানেল লিংক
 bot = telebot.TeleBot(API_TOKEN, parse_mode="Markdown")
